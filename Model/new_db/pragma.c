@@ -1,0 +1,1 @@
+omp parallel for num_threads(4) reduction(+:soma)
