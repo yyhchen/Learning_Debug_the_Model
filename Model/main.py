@@ -86,6 +86,8 @@ def reshuffle_data(data_old):
         
         （意思是必须看看ForPragmaExtractor包是怎么做的？？）
     '''
+    data_old = gp.Data()    # 新增，使得data_old能够有train 和 train_labels等属性
+
     for i in range(len(data_old.train_labels)):
         df['text'].append(data_old.train[i])
         df['label'].append(data_old.train_labels[i])
@@ -169,6 +171,7 @@ if __name__ == "__main__":
         if file_path.endswith(".pkl"):
             with open(file_path, 'rb') as f:
                 data = pickle.load(f)
+                print(data)
         elif file_path.endswith(".c"):
             data = pd.read_csv(file_path)
             data.head()
@@ -215,7 +218,7 @@ if __name__ == "__main__":
     pt_model = AutoModel.from_pretrained(model_pretained_name)
 
     batch_size = 32
-    # Convert lists to tensors..
+    # Convert lists to tensors.
     if args.train:
         # print("Example of data: \n", data.train[126])
         train, _ = deepscc_tokenizer(data.train, args.max_len, model_pretained_name)    # 'list' object has no attribute 'train'
