@@ -80,6 +80,12 @@ from Model.tokenizer import *
 def reshuffle_data(data_old):
 
     df = {'text': [], 'label': []}
+    '''
+        # 也就是这里原来的数据，必须有train和train_labels属性（Data类）
+        放到这里的数据应该是经过处理的，比如pickle文件和 code.c是作为 train属性，pragma.c作为train_labels属性
+        
+        （意思是必须看看ForPragmaExtractor包是怎么做的？？）
+    '''
     for i in range(len(data_old.train_labels)):
         df['text'].append(data_old.train[i])
         df['label'].append(data_old.train_labels[i])
