@@ -184,7 +184,7 @@ if __name__ == "__main__":
         return all_data
 
     if os.path.isdir(args.data_dir):
-        data = process_dir(args.data_dir)
+        data = process_dir(args.data_dir)   # 也就是这一步分析出了，data并不是Data类型，导致没有train和train_labels这样的属性
     else:
         data = process_file(args.data_dir)
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     # 先不管reshuffle的事，这个函数需要重写
     if args.reshuffle:  # action是处理bool值的
         print("@@@@@@@@@@@@@@ Reshuffle!!! @@@@@@@@@@@@@@")
-        data = reshuffle_data(data)   # 这一段有问题，处理不了，没有train_label
+        data = reshuffle_data(data)   # 这一段有问题，处理不了，data没有train_label
 
 
     torch.cuda.empty_cache()    # 释放为使用的GPU缓存
