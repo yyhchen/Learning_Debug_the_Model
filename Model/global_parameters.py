@@ -20,6 +20,8 @@ class Data:
         self.train_ids = []
         self.val_ids = []
         self.test_ids = []
+
+
 # class PragmaForTuple:
 #     """
 #     Class that holds 3 parameters.

@@ -150,7 +150,6 @@ if __name__ == "__main__":
     config = {}
     # config["data_type"] = args.data_type
     config["data_dir"] = args.data_dir
-    print(args.data_dir)
     max_len = args.max_len
 
     # Read pickle, i assume it is already tokenized!
@@ -170,31 +169,31 @@ if __name__ == "__main__":
         return data
 
     def process_dir(dir_path):
+        all_data = []
         for temp in os.listdir(dir_path):
             if os.path.isdir(temp):     # 如果仍然是dir
                 for file in os.listdir(temp):
                     file_path = os.path.join(dir_path, temp, file)
                     if os.path.isfile(file_path):
-                        process_file(file_path)
+                        file_data = process_file(file_path)
+                        all_data.append(file_data)
             else:
                 file_path = os.path.join(dir_path, temp)
-                process_file(file_path)
+                file_data = process_file(file_path)
+                all_data.append(file_data)
+        return all_data
 
     if os.path.isdir(args.data_dir):
         data = process_dir(args.data_dir)
     else:
         data = process_file(args.data_dir)
 
-    if os.path.isdir(args.data_dir):
-        print(f"Data directory exists: {args.data_dir}")
-        # ... rest of the code
-    else:
-        print(f"Data directory does not exist: {args.data_dir}")
-        # Handle this case accordingly
 
+    # 先不管reshuffle的事，这个函数需要重写
     if args.reshuffle:  # action是处理bool值的
         print("@@@@@@@@@@@@@@ Reshuffle!!! @@@@@@@@@@@@@@")
-        data = reshuffle_data(data)
+        data = reshuffle_data(data)   # 这一段有问题，处理不了，没有train_label
+
 
     torch.cuda.empty_cache()    # 释放为使用的GPU缓存
     # print(torch)
@@ -204,15 +203,16 @@ if __name__ == "__main__":
     # seq_len = [len(i.split()) for i in data.train_text]
     # pd.Series(seq_len).hist(bins = 30)
     # model = AutoModelForMaskedLM.from_pretrained("cl-nagoya/defsent-roberta-base-cls")
-    model_pretained_name = "NTUYG/DeepSCC-RoBERTa" #'bert-base-uncased'
+    # model_pretained_name = "NTUYG/DeepSCC-RoBERTa" #'bert-base-uncased'
     # model_pretained_name = 'bert-base-uncased'
+    model_pretained_name = "../DeepSCC/"
     pt_model = AutoModel.from_pretrained(model_pretained_name)
 
     batch_size = 32
     # Convert lists to tensors..
     if args.train:
-        print("Example of data: \n", data.train[126])
-        train, _ = deepscc_tokenizer(data.train, args.max_len, model_pretained_name)
+        # print("Example of data: \n", data.train[126])
+        train, _ = deepscc_tokenizer(data.train, args.max_len, model_pretained_name)    # 'list' object has no attribute 'train'
         val, _ = deepscc_tokenizer(data.val, args.max_len, model_pretained_name)
         train_seq = torch.tensor(train['input_ids'])
         train_mask = torch.tensor(train['attention_mask'])
