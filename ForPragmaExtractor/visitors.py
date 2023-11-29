@@ -332,14 +332,14 @@ class Visitor(c_ast.NodeVisitor):
         """ Visit a node.
         """
 
-        if self._method_cache is None:
+        if self._method_cache is None:     # _method_cache 是父类NodeVisitor中的属性(dict类型)，用来记录已经访问过的方法
             self._method_cache = {}
 
         visitor = self._method_cache.get(node.__class__.__name__, None)
         if visitor is None:
             method = 'visit_' + node.__class__.__name__
-            visitor = getattr(self, method, self.generic_visit)
+            visitor = getattr(self, method, self.generic_visit)     # 因为vistor是 None, 所以这个getattr通过method这个key找的value一定是self.generic_vist这个函数
             self._method_cache[node.__class__.__name__] = visitor
         # print (type(node))
-        return visitor(node)
+        return visitor(node)    # 故虽然这里的visitor看起来是函数，实际上是self.generic_vist这个函数,所以可以加参数(node)
 
