@@ -15,42 +15,45 @@ class FileParser:
     def __init__(self):
         self.pragma_removed = 0
 
-    def parse(self, file: os.path, headers: list):
-        '''函数 parse：
+    def parse(self, file: os.path, headers: list):  # 两个参数，file 和 headers
+        """函数 parse：
                 文件解析，通过 pycparser中的 parse_file 进行文件解析
 
                 能 parse，文件名放 GOOD_FILE,不能解析，文件名放 BAD_FILE
-        '''
-        self.pragma_removed = 0
-        print ("parsing file:", file)
+        """
+        self.pragma_removed = 0     # 用于记录移除的OpenMP指令数量
+        print("parsing file:", file)
         # cpp_args = ['-E', r'-Iutils/fake_libc_include']
-        cpp_args = ['-nostdinc',  '-E', r'-I' + FAKE_HEADER_PATH]  # 分别表示 编译器不适用系统标准头文件，编译器执行预处理指令，指定一个虚假的头文件目录
+        cpp_args = ['-nostdinc',  '-E', r'-I' + FAKE_HEADER_PATH]  # 分别表示 编译器不使用系统标准头文件，编译器执行预处理指令而不编译，指定一个虚假的头文件目录在此搜索头文件
 
         for header_file in headers:
             cpp_args.append(r'-I' + header_file)
         try:
-            ast = parse_file(file, use_cpp=True, cpp_path='mpicc', cpp_args = cpp_args)
+            ast = parse_file(file, use_cpp=True, cpp_path='mpicc', cpp_args=cpp_args)     # 因为是OpenMP并行编程，所以这里的cpp_path='mpicc'
             f = open(GOOD_FILE, "a+")
             f.writelines(file + "\n")
             f.close()
         except Exception as e:
-            print ("FAILED TO PARSE!!!!!!")
-            print (e)
+            print("FAILED TO PARSE!!!!!!")
+            print(e)
             # print("Command:", cpp_args)
 
-            f = open(BAD_FILE, "a+")  # 末尾追加
+            f = open(BAD_FILE, "a+")  # 末尾追加，这里放的是parse_file无法解析成ast的文件
             f.writelines("@extract_for.py:" + file + "\n")
             f.close()
             return None, None
 
 
-        # General description of the algorithm:
-        # 1. Get all for loops that contain a pragma with "for" and "parallel" in them.
-        # 2. Remove from that list all for loops with a pragma of a barriar or atomic - this is usually a bad openmp case..
-        # 3. Get all the for-loops without openmp directives (this is done by searching all for loops that do not contain a pragma with "for" or "parallel" in them
-        # 4. Find all the function calls inside the two for-loop list (with openmp and without openmp)
-        # 5. return a list of PragmaFor tuples that contain the for node and the pragma node (if without openmp then it is none)
-        generator = c_generator.CGenerator()    # 实例化一个CGenerator对象
+        """
+            # General description of the algorithm:
+            # 1. Get all for loops that contain a pragma with "for" and "parallel" in them.
+            # 2. Remove from that list all for loops with a pragma of a barriar or atomic - this is usually a bad openmp case..
+            # 3. Get all the for-loops without openmp directives (this is done by searching all for loops that do not contain a pragma with "for" or "parallel" in them
+            # 4. Find all the function calls inside the two for-loop list (with openmp and without openmp)
+            # 5. return a list of PragmaFor tuples that contain the for node and the pragma node (if without openmp then it is none)
+            
+        """
+        generator = c_generator.CGenerator()    # 实例化一个CGenerator对象，将parser转成的AST中的节点转换为对应的c语言代码
         # for n in relevant_nodes:
         # print(generator.visit(ast))
         # We get all function defenitions for later use
@@ -194,7 +197,7 @@ class FileParser:
             found_pragma = False
             for i, line in enumerate(lines):
                 if found_pragma:
-                    openmp_contents[number_of_pragmas][j] = line
+                    openmp_contents[number_of_pragmas][i] = line
 
 
 

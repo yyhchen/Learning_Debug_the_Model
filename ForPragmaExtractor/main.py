@@ -18,6 +18,9 @@ import extract_for
 import global_parameters as gp
 
 
+'''
+    根据文件夹路径、文件名和索引生成项目名称。
+'''
 def get_project_name(folder_path: os.path, file_name: os.path, index):
     indir = os.listdir(folder_path)     # 获取所有文件夹名字
     # if len(indir) > 1:
@@ -28,6 +31,11 @@ def get_project_name(folder_path: os.path, file_name: os.path, index):
     return full_project_name
 
 
+'''
+    根据参数override创建日志、成功文件、失败文件，并返回pragma的数量
+    
+    PRAGMA_FILES = "/home/reemh/CLPP/CLPP/ForPragmaExtractor/pragma_files.txt"
+'''
 def create_files(override):
     num_pragma = 0
     if override:
