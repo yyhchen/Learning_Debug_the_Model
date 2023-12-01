@@ -15,7 +15,7 @@ class Database:
                     shutil.rmtree(path)     # 递归删除当前目录下的所有文件夹(除了自身)
                 if os.path.isfile(json_path):
                     os.remove(json_path)    # 删除指定文件
-                print ("Removing", path)
+                print("Removing", path)
             else:
                 print("You chose no, continue as if not inserted override...")
 
