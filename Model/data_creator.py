@@ -385,6 +385,8 @@ def should_add_pragma(file_data_key, clause):
     with open(pickle_file, 'rb') as f:
         pragmafor_tuple = pkl.load(f)
         # print(dir(pragmafor_tuple))   # 找出有哪些属性，真没有报错的哪个 align
+
+        # 利用try except 解决了 某些 for_ast是没有align属性的问题，具体align是什么不知道，反正不行的都跳过！
         try:
             for_ast = pragmafor_tuple.for_node
             print('for_ast', for_ast)
@@ -394,7 +396,7 @@ def should_add_pragma(file_data_key, clause):
             return False  # 或者根据你的需求执行其他逻辑
         # for_ast = pragmafor_tuple.for_node      # 问题现在就在这里，报错：AttributeError: align, 解决不了了
 
-    if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的
+    if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的, 525行配的！！！
         print("should_add_pragma.max_ast", should_add_pragma.max_ast)
         should_add_pragma.counter = should_add_pragma.counter + 1   # 这里的 should_add_pragma.counter不会有问题吗？ counter怎么来的
         print('should_add_pragma.counter', should_add_pragma.counter)
