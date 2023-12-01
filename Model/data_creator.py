@@ -66,7 +66,7 @@ class DataCreator:
             else:
                 return 0
 
-        
+
     def parse_database(self, path_to_db):
         print("AS SIMPLE TEXT")
         if self.clause:
@@ -82,7 +82,7 @@ class DataCreator:
                 if i % 1000 == 0:
                     print("Progress, completed: {0}%".format(i * 100 / len(file_data)))
                 if not key == "key":
-                    pragma = db_read_string_from_file(file_data[key][gp.KEY_OPENMP])
+                    pragma = db_read_string_from_file(file_data[key][gp.KEY_OPENMP])    # 通过路径拿到的文件，然后读取文件拿到值
                     code = db_read_string_from_file(file_data[key][gp.KEY_CODE])
                     if not should_add_pragma(file_data[key], self.clause):
                         continue
@@ -379,15 +379,15 @@ class DataCreatorASTClause(DataCreator):
 
 
 def should_add_pragma(file_data_key, clause):
-    pragma = db_read_string_from_file(file_data_key[gp.KEY_OPENMP])
+    pragma = db_read_string_from_file(file_data_key[gp.KEY_OPENMP])     # 这种方式拿的是 str
     code = db_read_string_from_file(file_data_key[gp.KEY_CODE])
-    pickle_file = file_data_key[gp.KEY_PICKLE]
+    pickle_file = file_data_key[gp.KEY_PICKLE]  # 这拿的应该就是原本的pickle文件，需要用pickle.load的方式拿
     with open(pickle_file, 'rb') as f:
         pragmafor_tuple = pkl.load(f)  #
         for_ast = pragmafor_tuple.for_node
-    max_len_ast = visitor.get_length_ast(for_ast)
-    if max_len_ast > should_add_pragma.max_ast:
-        should_add_pragma.counter = should_add_pragma.counter + 1
+    max_len_ast = visitor.get_length_ast(for_ast)   # 这里为什么要算节点的长度？ 这里的visitor是ForPragmaExtractor.visitors
+    if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的
+        should_add_pragma.counter = should_add_pragma.counter + 1   # 这里的 should_add_pragma.counter不会有问题吗？ counter怎么来的
         return False
     if not clause:
         if is_fake_loop(code) and pragma != "":  # code is a full line
@@ -455,8 +455,7 @@ def normalize_code_as_string(pickle_file):
         id_v.reset()
         id_v.visit(for_ast)
         # Replace the names..
-        replacer.reset(id_v.ids, id_v.array,
-                                                id_v.struct, id_v.func)
+        replacer.reset(id_v.ids, id_v.array, id_v.struct, id_v.func)
         replacer.visit(for_ast)
         return generator.visit(for_ast)
 
@@ -482,8 +481,23 @@ def initialize_pycparser():
 
 
 def is_fake_loop(code_directive):
+    """
+    检查是否是虚假的循环（过滤数据）
+    比如：code_directive[1].strip() == ''的意思
+
+        for (int i = 0; i < 10; i++) {
+
+        }
+    这个空循环就应该去掉，不用加 pragma
+
+    code_directive[1].strip() == ';' 就类似于：
+
+        for (int i = 0; i < 10; i++);
+
+    """
     code_directive = code_directive.split("\n")
-    # print(len(code_directive))
+    print(len(code_directive))
+    # 其实这一步的健壮性是有问题的，如果code_directive是空或者小于1，那么就会报错 "IndexError: list index out of range"
     if len(code_directive) < 4 and (code_directive[1].strip() == '' or code_directive[1].strip() == ';'):
         return True
     return False
@@ -567,8 +581,9 @@ def statistics(config):
 
 
 def statistics2(config):
-    path_to_db = config["data_dir"]
-    json_file_name = os.path.join(path_to_db, "database.json")
+    # path_to_db = config["data_dir"]
+    # json_file_name = os.path.join(path_to_db, "database.json")
+    json_file_name = '../database.json'
     num_pragma = 0
     DIRECTIVES = ["reduction", "private", "dynamic", "shared", "lastprivate", "firstprivate", "collapse"]
     num_occur = [0] * len(DIRECTIVES)
@@ -613,7 +628,7 @@ if __name__ == "__main__":
     print('args: ', args)
     config = {}
     config['data_type'] = args.create_type
-    config["data_dir"] = "/home/reemh/LIGHTBITS/DB/"
+    config["data_dir"] = "Open_OMP/DB_TO_TAR/"
     config['save'] = args.save
     config['max_ast'] = args.max_ast
     config["clause"] = args.clause
