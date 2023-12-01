@@ -22,6 +22,7 @@ class Data:
         self.test_ids = []
 
 
+## 下面的这个类在 ForPragmaExtractor/global_parameters.py 也有
 # class PragmaForTuple:
 #     """
 #     Class that holds 3 parameters.
