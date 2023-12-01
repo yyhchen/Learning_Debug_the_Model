@@ -384,10 +384,16 @@ def should_add_pragma(file_data_key, clause):
     pickle_file = file_data_key[gp.KEY_PICKLE]  # 这拿的应该就是原本的pickle文件，需要用pickle.load的方式拿
     with open(pickle_file, 'rb') as f:
         pragmafor_tuple = pkl.load(f)
-        print( 'pragmafor_tuple type: ', pragmafor_tuple)
-        for_ast = pragmafor_tuple.for_node      # 问题现在就在这里，报错：AttributeError: align
-        print('for_ast', for_ast)
-    max_len_ast = visitor.get_length_ast(for_ast)   # 这里为什么要算节点的长度？ 这里的visitor是ForPragmaExtractor.visitors
+        # print(dir(pragmafor_tuple))   # 找出有哪些属性，真没有报错的哪个 align
+        try:
+            for_ast = pragmafor_tuple.for_node
+            print('for_ast', for_ast)
+            max_len_ast = visitor.get_length_ast(for_ast)  # 这里为什么要算节点的长度？ 这里的visitor是ForPragmaExtractor.visitors
+        except AttributeError as e:
+            print(f"AttributeError: {e}. Skipping for_ast.")
+            return False  # 或者根据你的需求执行其他逻辑
+        # for_ast = pragmafor_tuple.for_node      # 问题现在就在这里，报错：AttributeError: align, 解决不了了
+
     if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的
         print("should_add_pragma.max_ast", should_add_pragma.max_ast)
         should_add_pragma.counter = should_add_pragma.counter + 1   # 这里的 should_add_pragma.counter不会有问题吗？ counter怎么来的
