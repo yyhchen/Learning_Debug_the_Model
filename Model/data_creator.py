@@ -383,11 +383,15 @@ def should_add_pragma(file_data_key, clause):
     code = db_read_string_from_file(file_data_key[gp.KEY_CODE])
     pickle_file = file_data_key[gp.KEY_PICKLE]  # 这拿的应该就是原本的pickle文件，需要用pickle.load的方式拿
     with open(pickle_file, 'rb') as f:
-        pragmafor_tuple = pkl.load(f)  #
-        for_ast = pragmafor_tuple.for_node
+        pragmafor_tuple = pkl.load(f)
+        print( 'pragmafor_tuple type: ', pragmafor_tuple)
+        for_ast = pragmafor_tuple.for_node      # 问题现在就在这里，报错：AttributeError: align
+        print('for_ast', for_ast)
     max_len_ast = visitor.get_length_ast(for_ast)   # 这里为什么要算节点的长度？ 这里的visitor是ForPragmaExtractor.visitors
     if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的
+        print("should_add_pragma.max_ast", should_add_pragma.max_ast)
         should_add_pragma.counter = should_add_pragma.counter + 1   # 这里的 should_add_pragma.counter不会有问题吗？ counter怎么来的
+        print('should_add_pragma.counter', should_add_pragma.counter)
         return False
     if not clause:
         if is_fake_loop(code) and pragma != "":  # code is a full line
@@ -498,13 +502,16 @@ def is_fake_loop(code_directive):
     code_directive = code_directive.split("\n")
     print(len(code_directive))
     # 其实这一步的健壮性是有问题的，如果code_directive是空或者小于1，那么就会报错 "IndexError: list index out of range"
+    if(len(code_directive) <2):
+        return False
     if len(code_directive) < 4 and (code_directive[1].strip() == '' or code_directive[1].strip() == ';'):
         return True
     return False
 
 
 def data_creator(config):
-    if config['data_type'] not in DATA_CHOICES:
+    if config['data_type'] not in DATA_CHOICES:     # 这里提示了，运行该函数肯定不能直接让'data_type' 为默认的None，不然会退出
+        print(config['data_type'])
         print("WRONG DATA TYPE")
         print("Choose: ", DATA_CHOICES)
         exit(1)
@@ -628,7 +635,7 @@ if __name__ == "__main__":
     print('args: ', args)
     config = {}
     config['data_type'] = args.create_type
-    config["data_dir"] = "Open_OMP/DB_TO_TAR/"
+    config["data_dir"] = "../Open_OMP/DB_TO_TAR/"
     config['save'] = args.save
     config['max_ast'] = args.max_ast
     config["clause"] = args.clause
