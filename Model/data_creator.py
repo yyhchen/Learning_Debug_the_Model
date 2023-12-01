@@ -17,9 +17,10 @@ import ForPragmaExtractor.visitors as visitor
 import ForPragmaExtractor.global_parameters as global_parameters
 from pycparser import parse_file, c_ast, c_generator
 
-# Create
+# Create   (包含 不同数据类型选项的 list)
 DATA_CHOICES = ["as_text", "as_normalized", "as_ast", "as_ast_normalized", "as_ast_reduction", "as_ast_private", "as_ast_dynamic", "as_ast_shared"]
 
+# 一些前缀，用于替换代码中的 变量、数组、函数和结构体
 VAR_PREFIX = "var"
 ARR_PREFIX = "arr"
 FUNC_PREFIX = "func"
@@ -45,7 +46,7 @@ Only thing that is different between database creators is how to create the Prag
 # 3) Check if the word var1 in the pragma and code the same annotation
 class DataCreator:
     def __init__(self, clause = ""):
-        self.data = gp.Data()
+        self.data = gp.Data()   # 这句很重要，没有这句，data是没办法访问Data类中的train和train_labels等属性
         self.df = {'label': [], 'text': [], 'id': []}
         self.clause = clause
         pass
@@ -609,7 +610,7 @@ if __name__ == "__main__":
     parser.add_argument('--clause', default = "", type = str,
                         dest = 'clause', help = 'specific directive.')
     args = parser.parse_args()
-    print(args)
+    print('args: ', args)
     config = {}
     config['data_type'] = args.create_type
     config["data_dir"] = "/home/reemh/LIGHTBITS/DB/"
