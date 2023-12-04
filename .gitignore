@@ -1,0 +1,15 @@
+.idea/
+DB_TEST.tar.gz
+DB_TEST/
+DeepSCC/
+ForPragmaExtractor/__pycache__/extract_for.cpython-39.pyc
+ForPragmaExtractor/__pycache__/files_handler.cpython-39.pyc
+Lime/
+Open_OMP.tar.gz
+Open_OMP/
+code_4.html
+database.json
+database/
+example.pkl
+log_repositories_readme.txt
+test_demo.py
