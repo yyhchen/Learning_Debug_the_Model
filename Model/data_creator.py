@@ -12,9 +12,8 @@ import Model.global_parameters as gp
 import time
 from Model.utils import *
 import argparse
-# from Classifier.tokenizer import *
 import ForPragmaExtractor.visitors as visitor
-import ForPragmaExtractor.global_parameters as global_parameters
+# import ForPragmaExtractor.global_parameters as global_parameters
 from pycparser import parse_file, c_ast, c_generator
 
 # Create   (包含 不同数据类型选项的 list)
@@ -45,18 +44,26 @@ Only thing that is different between database creators is how to create the Prag
 # 2) Check data for "fake omp"
 # 3) Check if the word var1 in the pragma and code the same annotation
 class DataCreator:
+    '''
+        这个类究竟在干嘛？ 下面的一些函数分别是干嘛的？
+        -Function:
+            get_pragma:
+            parse_database:
+            split_and_tokenize_data:
+
+    '''
     def __init__(self, clause = ""):
         self.data = gp.Data()   # 这句很重要，没有这句，data是没办法访问Data类中的train和train_labels等属性
-        self.df = {'label': [], 'text': [], 'id': []}
+        self.df = {'label': [], 'text': [], 'id': []}   # 初始化这个干嘛的，在哪里用？后面的parse_database函数会用到
         self.clause = clause
         pass
     
-    def get_pragma(self, pragma_text):
+    def get_pragma(self, pragma_text):  # 获取 pragma，最后放到 self.df['label']中，在当前类的parse_database函数中会用到
         if self.clause == "":
             if pragma_text == "":
                 return 0
             else:
-                return 1
+                return 1    # 只要有pragma就返回1
         else:
             if pragma_text == "":
                 print("ERROR, shouldn't reach this if-clause")
@@ -78,24 +85,23 @@ class DataCreator:
             # First we load existing data into a dict.
             file_data = json.load(file)
             # Join new_data with file_data inside emp_details
-            for i, key in enumerate(file_data):
+            for i, key in enumerate(file_data):     # 这里的key是（包含三个文件的）当前项目名
                 if i % 1000 == 0:
                     print("Progress, completed: {0}%".format(i * 100 / len(file_data)))
                 if not key == "key":
-                    pragma = db_read_string_from_file(file_data[key][gp.KEY_OPENMP])    # 通过路径拿到的文件，然后读取文件拿到值
+                    pragma = db_read_string_from_file(file_data[key][gp.KEY_OPENMP])    # 通过路径用拿到的文件，然后读取文件拿到值
                     code = db_read_string_from_file(file_data[key][gp.KEY_CODE])
                     if not should_add_pragma(file_data[key], self.clause):
                         continue
-                    pragma = self.get_pragma(pragma)
-                    self.df['label'].append(pragma)
+                    pragma = self.get_pragma(pragma)    # get_pragma的返回值是0或1，难道是有标签和无标签吗
+                    self.df['label'].append(pragma)     # 添加pragma为标签，这里的df是 DataCreator初始化就有的
                     self.df['text'].append(get_code_from_pickle(file_data[key][gp.KEY_PICKLE]))
                     self.df['id'].append(file_data[key]["id"])
         print ("NUMBER OF SET", len(self.df['text']))
 
     def split_and_tokenize_data(self):
-
-        with open("../data/as_text_25.pkl", 'rb') as f:
-            data = pickle.load(f)
+        with open("../database/0xe1d1a_pcs_compute.c_0/code_pickle.pkl", 'rb') as f:    # 这里的 文件应该是 "global_parameters中的Data()类型的才对"
+            data = pickle.load(f)    # 'PragmaForTuple' object has no attribute 'train_ids'
         for i, val in enumerate(self.df['id']):
             if val in data.train_ids:
                 self.data.train_ids.append(val)
@@ -308,7 +314,7 @@ class DataCreatorASTNormalized(DataCreator):
                 if i % 1000 == 0:
                     print("Progress, completed: {0}%".format(i * 100 / len(file_data)))
                 pragma = db_read_string_from_file(file_data[key][gp.KEY_OPENMP])
-                code   = db_read_string_from_file(file_data[key][gp.KEY_CODE])
+                code = db_read_string_from_file(file_data[key][gp.KEY_CODE])
                 if not should_add_pragma(file_data[key], self.clause):
                     continue
                 pragma = self.get_pragma(pragma)
@@ -381,22 +387,34 @@ class DataCreatorASTClause(DataCreator):
 def should_add_pragma(file_data_key, clause):
     pragma = db_read_string_from_file(file_data_key[gp.KEY_OPENMP])     # 这种方式拿的是 str
     code = db_read_string_from_file(file_data_key[gp.KEY_CODE])
-    pickle_file = file_data_key[gp.KEY_PICKLE]  # 这拿的应该就是原本的pickle文件，需要用pickle.load的方式拿
+    pickle_file = file_data_key[gp.KEY_PICKLE]  # 这拿的应该就是原本的pickle文件的地址，需要用pickle.load的方式拿
     with open(pickle_file, 'rb') as f:
-        pragmafor_tuple = pkl.load(f)
+        pragmafor_tuple = pickle.load(f)
         # print(dir(pragmafor_tuple))   # 找出有哪些属性，真没有报错的哪个 align
 
         # 利用try except 解决了 某些 for_ast是没有align属性的问题，具体align是什么不知道，反正不行的都跳过！
+        '''
+            这里我好像懂了为什么 pragmafor_tuple 是PragmaForTuple类型
+            因为 pickle.load（f） 这里的 f 是通过就是通过PragmaForTuple这种类型存储的，序列化并不改变类型
+            所以pragmafor_tuple当然可以访问 PragmaForTuple 里的属性 for_node
+        '''
         try:
-            for_ast = pragmafor_tuple.for_node
-            print('for_ast', for_ast)
+            for_ast = pragmafor_tuple.for_node      # 说实话这里没懂，因为for_node是自定义类PragmaForTuple的属性，pkl.load(f)不是pickle带的函数吗，为什么加载的类型能够是PragmaForTuple，这可是自定义类呢
+            # print('for_ast: ', for_ast) # 这里打印的东西太多了
             max_len_ast = visitor.get_length_ast(for_ast)  # 这里为什么要算节点的长度？ 这里的visitor是ForPragmaExtractor.visitors
+            print('max_len_ast: ', max_len_ast)
         except AttributeError as e:
             print(f"AttributeError: {e}. Skipping for_ast.")
             return False  # 或者根据你的需求执行其他逻辑
         # for_ast = pragmafor_tuple.for_node      # 问题现在就在这里，报错：AttributeError: align, 解决不了了
+        # for_ast = pragmafor_tuple.for_node
+        # if hasattr(for_ast, 'align'):
+        #     max_len_ast = visitor.get_length_ast(for_ast)
+        # else:
+        #     print("Attribute 'align' not found. Skipping for_ast.")
+        #     return False
 
-    if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的, 525行配的！！！
+    if max_len_ast > should_add_pragma.max_ast:     # 这里的max_ast怎么来的, should_add_pragma.max_ast = config["max_ast"]配的！！！
         print("should_add_pragma.max_ast", should_add_pragma.max_ast)
         should_add_pragma.counter = should_add_pragma.counter + 1   # 这里的 should_add_pragma.counter不会有问题吗？ counter怎么来的
         print('should_add_pragma.counter', should_add_pragma.counter)
@@ -534,17 +552,17 @@ def data_creator(config):
     print("Creating Data with max:", should_add_pragma.max_ast)
     # we create a dictionairy that has the text and label from the DB
     # as test as normalized as ast as ast_normalized
-    if parse_type == DATA_CHOICES[0]:
+    if parse_type == DATA_CHOICES[0]:   # as_ast
         creator = DataCreator(config["clause"])
-    if parse_type == DATA_CHOICES[1]:
+    if parse_type == DATA_CHOICES[1]:   # as_normalized 不过不知道这个类型是什么意思
         creator = DataCreatorFakePragmaAndNormalize(config["clause"])
-    if parse_type == DATA_CHOICES[2]:
+    if parse_type == DATA_CHOICES[2]:   # as_ast
         creator = DataCreatorAST(config["clause"])
-    if parse_type == DATA_CHOICES[3]:
+    if parse_type == DATA_CHOICES[3]:   # as_ast_normalized
         creator = DataCreatorASTNormalized(config["clause"])
 
-    creator.parse_database(path_to_db)
-    creator.split_and_tokenize_data()
+    creator.parse_database(path_to_db)      # 有好几个parse_database函数，都在DataCreator的子类中
+    creator.split_and_tokenize_data()       # 同样也是好几个split_and_tokenize_data
 
     new_json = save
     with open(new_json, 'wb') as f:

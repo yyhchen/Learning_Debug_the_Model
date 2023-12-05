@@ -6,7 +6,7 @@ import pickle
 def db_read_string_from_file(file_path):
     try:
         with open(file_path, "r") as f:
-            return "".join(f.readlines())
+            return "".join(f.readlines())   # readlines()是读全部
     except:
         return ""
 

@@ -87,6 +87,7 @@ def reshuffle_data(data_old):
         （意思是必须看看ForPragmaExtractor包是怎么做的？？）
     '''
     data_old = gp.Data()    # 新增，使得data_old能够有train 和 train_labels等属性
+    print('data_old.train_labels： ', data_old.train_labels)
 
     for i in range(len(data_old.train_labels)):
         df['text'].append(data_old.train[i])
@@ -194,8 +195,10 @@ if __name__ == "__main__":
 
     if os.path.isdir(args.data_dir):
         data = process_dir(args.data_dir)   # 也就是这一步分析出了，data并不是Data类型，导致没有train和train_labels这样的属性
+        print(data)
     else:
         data = process_file(args.data_dir)
+        print(data)
 
 
     # 先不管reshuffle的事，这个函数需要重写
