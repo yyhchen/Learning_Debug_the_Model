@@ -140,10 +140,10 @@ class CounterIdVisitor(c_ast.NodeVisitor):
             self.ids.append(node.name)
 
     def visit_FuncCall(self, node):
-        # print("FuncCall:", node)
+        print("FuncCall:", node)
         if isinstance(node.name, c_ast.UnaryOp):
             if node.name.op == '*':
-                self.generic_visit(node)
+                self.generic_visit(node)    # 继续遍历节点
         else:
             self.func.append(node.name.name)
             self.generic_visit(node)
@@ -338,8 +338,8 @@ class Visitor(c_ast.NodeVisitor):
         visitor = self._method_cache.get(node.__class__.__name__, None)
         if visitor is None:
             method = 'visit_' + node.__class__.__name__
-            visitor = getattr(self, method, self.generic_visit)     # 因为vistor是 None, 所以这个getattr通过method这个key找的value一定是self.generic_vist这个函数
+            visitor = getattr(self, method, self.generic_visit)        # 就一直找visit_xx是否是当前实例的方法，否则就通过self.generic_visit继续遍历
             self._method_cache[node.__class__.__name__] = visitor
         # print (type(node))
-        return visitor(node)    # 故虽然这里的visitor看起来是函数，实际上是self.generic_vist这个函数,所以可以加参数(node)
+        return visitor(node)    # 其实这里就是visit_xx函数
 
